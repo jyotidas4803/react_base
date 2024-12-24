@@ -26,16 +26,29 @@
       const rootEl = ReactDOM.createRoot(appEl);
 
       function App() {
-        const [taskArr, setTaskArr] = React.useState([]);
+        const [taskArr, setTaskArr] = React.useState([
+          {
+            id: 1,
+            title: "first item",
+          },
+          {
+            id: 2,
+            title: "second item",
+          },
+        ]);
 
         const handleTaskUpdate = (value) => {
           setTaskArr([...taskArr, value]);
         };
 
+        const handleTaskDelete = (id) => {
+          setTaskArr((prevState) => prevState.filter((obj) => obj.id !== id));
+        };
+
         return (
           <div>
             <AddTask onSubmit={handleTaskUpdate} />
-            <TaskList data={taskArr} />
+            <TaskList data={taskArr} deleteTask={handleTaskDelete} />
           </div>
         );
       }
@@ -43,7 +56,6 @@
       function AddTask({ onSubmit }) {
         const inputEl = React.useRef(null);
 
-        // Activate when mounted
         React.useEffect(() => {
           inputEl.current.focus();
         }, []);
@@ -53,39 +65,52 @@
             className="flex justify-center items-center flex-col"
             onSubmit={(e) => {
               e.preventDefault();
-              onSubmit(inputEl.current.value);
+              onSubmit({
+                id: crypto.randomUUID(),
+                title: inputEl.current.value,
+              });
               inputEl.current.value = "";
             }}
           >
             <input
               type="text"
-              name=""
-              id=""
               ref={inputEl}
               className="border rounded border-black"
             />
-            <button
-              type="submit"
-              className="bg-blue-500 text-white p-2 rounded"
-            >
+            <button type="submit" className="bg-blue-500 text-white p-2 rounded">
               Add task
             </button>
           </form>
         );
       }
 
-      function TaskList({ data }) {
-        console.log("from task list", data);
+      function TaskList({ data, deleteTask }) {
         return (
-          <h1>
-            {data.map((item, index) => (
-              <p key={item + index}>{item}</p>
+          <div>
+            {data.map((obj) => (
+              <SingleTask
+                key={obj.id}
+                title={obj.title}
+                deleteTask={() => deleteTask(obj.id)}
+              />
             ))}
-          </h1>
+          </div>
         );
       }
 
-      function SingleTask() {}
+      function SingleTask({ title, deleteTask }) {
+        return (
+          <div className="flex items-center space-x-4">
+            <p className="text-blue-700">{title}</p>
+            <button
+              className="bg-red-500 text-white p-1 rounded"
+              onClick={deleteTask}
+            >
+              Delete
+            </button>
+          </div>
+        );
+      }
 
       rootEl.render(
         <React.StrictMode>
